@@ -53,6 +53,7 @@ userSchema.methods.comparePassword = function (plainPassword, cb) {
   console.log("암호화 비밀번호 : " + this.password);
   bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
     if (err) return cb(err);
+    console.log(isMatch);
     cb(null, isMatch);
   });
 };

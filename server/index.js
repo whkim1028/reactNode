@@ -29,19 +29,32 @@ app.use(cookieParser());
 
 app.get("/", (req, res) => res.send("hello world11 새해복 많이 받으세요"));
 
-app.post("/register", (req, res) => {
+app.post("/api/user/register", (req, res) => {
   //회원가입할 때 필요한 정보 들을 클라이언트에서 가져오면
   //그것들을 데이터 베이스에 넣어준다.
   const user = new User(req.body);
-  user.save((err, userInfo) => {
-    if (err) return res.json({ success: false, err });
-    return res.status(200).json({
-      success: true,
-    });
+  //요청된 이메일을 데이터베이스에서 조회
+  User.findOne({ email: req.body.email }, (err, preUser) => {
+    if (preUser) {
+      return res.json({
+        joinSuccess: false,
+        message: "preUser",
+      });
+    } else {
+      console.log(user);
+      user.save((err, userInfo) => {
+        if (err) return res.json({ success: false, err });
+        return res.status(200).json({
+          joinSuccess: true,
+          userInfo: userInfo,
+        });
+      });
+    }
+    console.log("user:", user);
   });
 });
 
-app.post("/login", (req, res) => {
+app.post("/api/user/login", (req, res) => {
   //요청된 이메일을 데이터베이스에서 조회
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
@@ -50,6 +63,8 @@ app.post("/login", (req, res) => {
         message: "제공된 이메일에 해당하는 유저가 없습니다. ",
       });
     }
+
+    console.log("user:", user);
 
     //요청한 이메일의 비밀번호가 일치하는지 확인
     user.comparePassword(req.body.password, (err, isMatch) => {
@@ -73,8 +88,9 @@ app.post("/login", (req, res) => {
   });
 });
 
-app.get("/api/users/auth", auth, (req, res) => {
-  res.status(200).json({
+app.get("/api/user/auth", auth, (req, res) => {
+  console.log(req.user);
+  return res.status(200).send({
     _id: req.user._id,
     isAdmin: req.user.role === 0 ? false : true,
     isAuth: true,
@@ -87,7 +103,13 @@ app.get("/api/users/auth", auth, (req, res) => {
 });
 
 app.get("/api/hello", (req, res) => {
-  res.send("안녕하세요~~~");
+  let sum = 20 + 30;
+
+  res.status(200).json({
+    massage: "안녕하세요.",
+    num: sum,
+    auth: "김완희",
+  });
 });
 
 //로그아웃 라우터
